@@ -58,7 +58,7 @@ template "unicorn-init" do
   source "unicorn-init.erb"
   mode "0755"
 
-  options(
+  variables(
     :app => app,
     :rails_env => node.run_state[:rails_env] || node.chef_environment,
     :smells_like_rack => ::File.exists?(::File.join(app['deploy_to'], "current", "config.ru"))
