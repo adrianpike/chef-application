@@ -1,12 +1,12 @@
 #!/bin/bash
 ### BEGIN INIT INFO
-# Provides:          unicorns for <%=@options[:app]['id']%>
+# Provides:          unicorns for <%=@app['id']%>
 # Required-Start:    $all
 # Required-Stop:     $network $local_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start the <%=@options[:app]['id']%> unicorns at boot
-# Description:       Enable <%=@options[:app]['id']%> at boot time.
+# Short-Description: Start the <%=@app['id']%> unicorns at boot
+# Description:       Enable <%=@app['id']%> at boot time.
 ### END INIT INFO
 
 set -u
