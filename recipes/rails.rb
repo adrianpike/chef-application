@@ -40,11 +40,16 @@ if app['packages']
   end
 end
 
+## Next, get an RVM environment up if we need one.
+if app['rvm_environment']
+  rvm_environment app['rvm_environment']
+end
+
 ## Next, install any application specific gems
 if app['gems']
   app['gems'].each do |gem,ver|
     if app['rvm_environment']
-      rvm_gem do
+      rvm_gem gem do
         action :install
         version ver if ver && ver.length > 0
       end
@@ -55,11 +60,6 @@ if app['gems']
       end
     end
   end
-end
-
-## Next, get an RVM environment up if we need one.
-if app['rvm_environment']
-  rvm_environment app['rvm_environment']
 end
 
 directory app['deploy_to'] do
