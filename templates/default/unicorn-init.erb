@@ -1,0 +1,67 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          unicorns for <%=@options[:app]['id']%>
+# Required-Start:    $all
+# Required-Stop:     $network $local_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start the <%=@options[:app]['id']%> unicorns at boot
+# Description:       Enable <%=@options[:app]['id']%> at boot time.
+### END INIT INFO
+
+set -u
+set -e
+
+# Change these to match your app:
+USER=<%= @options[:app]["owner"] %>
+APP_NAME=<%= @options[:app]["group"] %>
+APP_ROOT="<%= @options[:app]['deploy_to'] %>/current"
+PID="<%= @options[:app]['deploy_to'] %>/shared/pids/unicorn.pid"
+ENV=production
+
+old_pid="$PID.oldbin"
+
+CMD = "exec chpst -u <%= @options[:app]["owner"] %>:<%= @options[:app]["group"] %> <%= @options[:smells_like_rack] ? 'unicorn' : 'unicorn_rails' %> -E <%= @options[:rails_env] %> -c /etc/unicorn/<%= @options[:app]['id'] %>.rb"
+
+cd $APP_ROOT || exit 1
+
+sig () {
+	test -s "$PID" && kill -$1 `cat $PID`
+}
+
+oldsig () {
+	test -s $old_pid && kill -$1 `cat $old_pid`
+}
+
+case ${1-help} in
+start)
+	sig 0 && echo >&2 "Already running" && exit 0
+	$CMD
+	;;
+stop)
+	sig QUIT && exit 0
+	echo >&2 "Not running"
+	;;
+force-stop)
+	sig TERM && exit 0
+	echo >&2 "Not running"
+	;;
+restart|reload)
+	sig HUP && echo reloaded OK && exit 0
+	echo >&2 "Couldn't reload, starting '$CMD' instead"
+	$CMD
+	;;
+upgrade)
+	sig USR2 && exit 0
+	echo >&2 "Couldn't upgrade, starting '$CMD' instead"
+	$CMD
+	;;
+rotate)
+	sig USR1 && echo rotated logs OK && exit 0
+	echo >&2 "Couldn't rotate logs" && exit 1
+	;;
+*)
+ 	echo >&2 "Usage: $0 <start|stop|restart|upgrade|rotate|force-stop>"
+ 	exit 1
+ 	;;
+esac
