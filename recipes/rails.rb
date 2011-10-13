@@ -50,6 +50,7 @@ if app['gems']
   app['gems'].each do |gem,ver|
     if app['rvm_environment']
       rvm_gem gem do
+        ruby_string app['rvm_environment']
         action :install
         version ver if ver && ver.length > 0
       end

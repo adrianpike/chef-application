@@ -9,21 +9,26 @@
 # Description:       Enable <%=@app['id']%> at boot time.
 ### END INIT INFO
 
+# Load up RVM
+<% if @app['rvm_environment'] then %>
+if [[ -s "$HOME/.rvm/scripts/rvm" ]] ; then
+	source "$HOME/.rvm/scripts/rvm"
+elif [[ -s "/usr/local/rvm/scripts/rvm" ]] ; then
+  source "/usr/local/rvm/scripts/rvm"
+else
+	printf "No RVM discovered, but we have an environment specified!"
+fi
+
+rvm use <%=@app['rvm_environment']%>
+<% end %>
+
 set -u
 set -e
 
-# Change these to match your app:
-USER=<%= @app["owner"] %>
-APP_NAME=<%= @app["group"] %>
-APP_ROOT="<%= @app['deploy_to'] %>/current"
 PID="<%= @app['deploy_to'] %>/shared/pids/unicorn.pid"
-ENV=production
-
 old_pid="$PID.oldbin"
 
-CMD = "exec chpst -u <%= @app["owner"] %>:<%= @app["group"] %> <%= @smells_like_rack ? 'unicorn' : 'unicorn_rails' %> -E <%= @rails_env %> -c /etc/unicorn/<%= @app['id'] %>.rb"
-
-cd $APP_ROOT || exit 1
+CMD="exec chpst -u <%= @app["owner"] %>:<%= @app["group"] %> <%= @smells_like_rack ? 'unicorn' : 'unicorn_rails' %> -E <%= @rails_env %> -c /etc/unicorn/<%= @app['id'] %>.rb"
 
 sig () {
 	test -s "$PID" && kill -$1 `cat $PID`
