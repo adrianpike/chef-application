@@ -41,35 +41,34 @@ end
 
 case node[:unicorn][:init_style]
 when 'runit'
-runit_service app['id'] do
-  template_name 'unicorn'
-  cookbook 'application'
-  options(
-    :app => app,
-    :rails_env => node.run_state[:rails_env] || node.chef_environment,
-    :smells_like_rack => ::File.exists?(::File.join(app['deploy_to'], "current", "config.ru"))
-  )
-  run_restart false
-end
+  runit_service app['id'] do
+    template_name 'unicorn'
+    cookbook 'application'
+    options(
+      :app => app,
+      :rails_env => node.run_state[:rails_env] || node.chef_environment,
+      :smells_like_rack => ::File.exists?(::File.join(app['deploy_to'], "current", "config.ru"))
+    )
+    run_restart false
+  end
 when 'init'
+  template "unicorn-init" do
+    path "/etc/rc.d/init.d/#{app['id']}"
+    source "unicorn-init.erb"
+    mode "0755"
 
-template "unicorn-init" do
-  path "/etc/rc.d/init.d/#{app['id']}"
-  source "unicorn-init.erb"
-  mode "0755"
+    variables(
+      :app => app,
+      :rails_env => node.run_state[:rails_env] || node.chef_environment,
+      :smells_like_rack => ::File.exists?(::File.join(app['deploy_to'], "current", "config.ru"))
+    )
 
-  variables(
-    :app => app,
-    :rails_env => node.run_state[:rails_env] || node.chef_environment,
-    :smells_like_rack => ::File.exists?(::File.join(app['deploy_to'], "current", "config.ru"))
-  )
-
-end
-
-service app['id'] do
-  supports :status => true, :restart => true, :reload => true
-  action [ :enable, :start ]
-end
+  end
+  
+  # Pull this for now since i'm doing the initscripts manually
+  #service app['id'] do
+  #  supports :status => true, :restart => false, :reload => true
+  #end
 
 end
 
